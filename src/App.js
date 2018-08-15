@@ -11,15 +11,24 @@ class App extends Component {
       account: false,
       gwei: 4,
       doingTransaction: false,
+      message:"",
+      sig:"",
+      hash:"",
+      sig:"",
+      events:[]
     }
   }
   handleInput(e){
     let update = {}
     update[e.target.name] = e.target.value
+    if(e.target.name=="message"){
+      update["hash"] = this.state.web3.utils.keccak256(e.target.value)
+      update['sig'] = ""
+    }
     this.setState(update)
   }
   render() {
-    let {web3,account,contracts,tx,gwei,block,avgBlockTime,etherscan} = this.state
+    let {web3,account,contracts,tx,gwei,block,avgBlockTime,etherscan,events} = this.state
     let connectedDisplay = []
     let contractsDisplay = []
     if(web3){
@@ -74,32 +83,61 @@ class App extends Component {
           }}
         />
       )
-      /*
+
       if(contracts){
         contractsDisplay.push(
           <div key="UI" style={{padding:30}}>
             <div>
               <Address
                 {...this.state}
-                address={contracts.YOURCONTRACT._address}
+                address={contracts.Recover._address}
               />
             </div>
-            broadcast string: <input
+
+            <div>
+              <Address
+                {...this.state}
+                address={this.state.account}
+              />
+            </div>
+
+            <div>
+            string: <input
                 style={{verticalAlign:"middle",width:400,margin:6,maxHeight:20,padding:5,border:'2px solid #ccc',borderRadius:5}}
-                type="text" name="broadcastText" value={this.state.broadcastText} onChange={this.handleInput.bind(this)}
+                type="text" name="message" value={this.state.message} onChange={this.handleInput.bind(this)}
             />
-            <Button color={this.state.doingTransaction?"orange":"green"} size="2" onClick={()=>{
+            </div>
+            <div>
+              hash: <input
+                  style={{verticalAlign:"middle",width:500,margin:6,maxHeight:20,padding:5,border:'2px solid #ccc',borderRadius:5}}
+                  type="text" name="hash" value={this.state.hash} onChange={this.handleInput.bind(this)}
+              />
+            </div>
+            <Button size="2" onClick={async ()=>{
+                let sig = await this.state.web3.eth.personal.sign(""+this.state.hash,account)
+                this.setState({sig:sig})
+              }}>
+              Sign
+            </Button>
+            <div>
+              sig: <input
+                  style={{verticalAlign:"middle",width:1000,margin:6,maxHeight:20,padding:5,border:'2px solid #ccc',borderRadius:5}}
+                  type="text" name="sig" value={this.state.sig} onChange={this.handleInput.bind(this)}
+              />
+            </div>
+            <Button color={this.state.doingTransaction?"orange":"green"} size="2" onClick={async ()=>{
                 this.setState({doingTransaction:true})
-                //tx(contracts.YOURCONTRACT.YOURFUNCTION(YOURARGUMENTS),(receipt)=>{
-                //  this.setState({doingTransaction:false})
-                //})
+                console.log(contracts.Recover)
+                tx(contracts.Recover.message(this.state.message,this.state.sig),(receipt)=>{
+                  this.setState({doingTransaction:false})
+                })
               }}>
               Send
             </Button>
             <Events
-              config={{hide:false}}
-              contract={contracts.YOURCONTRACT}
-              eventName={"YOUREVENT"}
+              config={{hide:true}}
+              contract={contracts.Recover}
+              eventName={"Message"}
               block={block}
               onUpdate={(eventData,allEvents)=>{
                 console.log("EVENT DATA:",eventData)
@@ -109,7 +147,18 @@ class App extends Component {
           </div>
         )
       }
-      */
+    }
+
+    let messages = []
+    for(let e in events){
+      messages.push(
+        <div key={"msg"+e} style={{padding:30}}>
+        <Address
+          {...this.state}
+          address={events[e].signer}
+        /> {events[e].message}
+        </div>
+      )
     }
     return (
       <div className="App">
@@ -125,6 +174,7 @@ class App extends Component {
         />
         {connectedDisplay}
         {contractsDisplay}
+        {messages}
       </div>
     );
   }
