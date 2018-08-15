@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "clevis": "0.0.63",
+    "clevis": "0.0.65",
     "dapparatus": "^1.0.20",
     "mocha": "^5.2.0",
     "react": "^16.4.2",
@@ -12,7 +12,7 @@
     "s3": "^4.4.0"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "PORT=8008 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
